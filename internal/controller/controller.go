@@ -3,6 +3,7 @@ package controller
 import (
 	"ddnsd/internal/config"
 	"ddnsd/internal/dns"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -57,11 +58,20 @@ func (c *Controller) Run() error {
 	}
 }
 
+func recordType(ip string) string {
+	if net.ParseIP(ip).To4() != nil {
+		return "A"
+	}
+	return "AAAA"
+}
+
 func (c *Controller) updateDnsRecord(dnsClient dns.Provider, dryRun bool, domain string, host string, ip string) error {
+	recType := recordType(ip)
+
 	// initialize cache on first run
 	if c.ipCache == nil {
 		log.Debug().Msg("initializing cache")
-		currentRecordValue, err := dnsClient.GetNameserverRecordValue(domain, host)
+		currentRecordValue, err := dnsClient.GetNameserverRecordValue(domain, host, recType)
 		if err != nil {
 			return err
 		}
@@ -80,7 +90,7 @@ func (c *Controller) updateDnsRecord(dnsClient dns.Provider, dryRun bool, domain
 		return nil
 	}
 
-	dnsRecordID, err := dnsClient.GetNameserverRecordID(domain, host)
+	dnsRecordID, err := dnsClient.GetNameserverRecordID(domain, host, recType)
 	if err != nil {
 		return err
 	}

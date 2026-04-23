@@ -22,16 +22,30 @@ type LocalProviderOptions struct {
 func (l *LocalProvider) GetIpAddress() (*string, error) {
 	switch l.IpVersion {
 	case IPv4Version:
-		//TODO: implement ipv4. Also needs changes in inwx provider to create AA instead of AAAA record.
-		return nil, errors.New("ipv4 not supported")
+		return l.getIpv4Address()
 	case IPv6Version:
 		return l.getIpv6Address()
 	default:
-		return nil, fmt.Errorf("unknown ip version %s", l.IpVersion)
+		return nil, fmt.Errorf("unknown ip version %d", l.IpVersion)
 	}
 }
 
+func (l *LocalProvider) getIpv4Address() (*string, error) {
+	return l.findAddress(func(ip net.IP) net.IP {
+		return ip.To4()
+	}, "no ipv4 address found")
+}
+
 func (l *LocalProvider) getIpv6Address() (*string, error) {
+	return l.findAddress(func(ip net.IP) net.IP {
+		if ip.To4() == nil && !ip.IsLinkLocalUnicast() {
+			return ip
+		}
+		return nil
+	}, "no ipv6 address found")
+}
+
+func (l *LocalProvider) findAddress(match func(net.IP) net.IP, notFoundMsg string) (*string, error) {
 	iface, err := l.getNicByName(l.Options.Iface)
 	if err != nil {
 		return nil, err
@@ -47,15 +61,27 @@ func (l *LocalProvider) getIpv6Address() (*string, error) {
 	}
 
 	for _, addr := range addrs {
-		switch v := addr.(type) {
-		case *net.IPNet:
-			if v.IP.To4() == nil && v.IP.IsLinkLocalUnicast() == false {
-				return new(v.IP.String()), nil
+		if v, ok := addr.(*net.IPNet); ok {
+			if ip := match(v.IP); ip != nil {
+				s := ip.String()
+				return &s, nil
 			}
-		default:
-			return nil, errors.New("unexpected address type")
 		}
 	}
 
-	return nil, errors.New("no ipv6 address found")
+	return nil, errors.New(notFoundMsg)
+}
+
+func (l *LocalProvider) getNicByName(name string) (*net.Interface, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, iface := range ifaces {
+		if iface.Name == name {
+			return &iface, nil
+		}
+	}
+	return nil, fmt.Errorf("network interface %s not found", name)
 }
