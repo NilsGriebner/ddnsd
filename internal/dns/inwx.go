@@ -13,7 +13,8 @@ const (
 
 type InwxProvider struct {
 	DefaultProvider `yaml:",inline"`
-	client          *goinwx.Client
+
+	client *goinwx.Client
 }
 
 func (i *InwxProvider) Login() error {

@@ -12,21 +12,22 @@ const (
 
 type LocalProvider struct {
 	DefaultProvider `yaml:",inline"`
-	Options         LocalProviderOptions `yaml:"options"`
+
+	Options LocalProviderOptions `yaml:"options"`
 }
 
 type LocalProviderOptions struct {
 	Iface string `yaml:"iface"`
 }
 
-func (l *LocalProvider) GetIpAddress() (*string, error) {
-	switch l.IpVersion {
+func (l *LocalProvider) GetIPAddress() (*string, error) {
+	switch l.IPVersion {
 	case IPv4Version:
 		return l.getIpv4Address()
 	case IPv6Version:
 		return l.getIpv6Address()
 	default:
-		return nil, fmt.Errorf("unknown ip version %d", l.IpVersion)
+		return nil, fmt.Errorf("unknown ip version %d", l.IPVersion)
 	}
 }
 

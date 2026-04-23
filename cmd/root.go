@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"os"
+
 	"ddnsd/internal/config"
 	"ddnsd/internal/controller"
-	"os"
 
 	"github.com/goccy/go-yaml"
 	"github.com/rs/zerolog"

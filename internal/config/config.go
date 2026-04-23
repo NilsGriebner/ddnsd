@@ -1,9 +1,10 @@
 package config
 
 import (
+	"fmt"
+
 	"ddnsd/internal/address"
 	"ddnsd/internal/dns"
-	"fmt"
 )
 
 type Config struct {
@@ -12,7 +13,7 @@ type Config struct {
 	Domain          string                 `yaml:"domain"`
 	DryRun          bool                   `yaml:"dryRun"`
 	Host            string                 `yaml:"host"`
-	DnsProvider     DnsProviderWrapper     `yaml:"dnsProvider"`
+	DNSProvider     DNSProviderWrapper     `yaml:"dnsProvider"`
 }
 
 type AddressProviderWrapper struct {
@@ -41,11 +42,11 @@ func (w *AddressProviderWrapper) UnmarshalYAML(unmarshal func(any) error) error 
 	}
 }
 
-type DnsProviderWrapper struct {
+type DNSProviderWrapper struct {
 	Provider dns.Provider
 }
 
-func (d *DnsProviderWrapper) UnmarshalYAML(unmarshal func(any) error) error {
+func (d *DNSProviderWrapper) UnmarshalYAML(unmarshal func(any) error) error {
 	var peek struct {
 		Name string `yaml:"name"`
 	}

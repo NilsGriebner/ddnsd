@@ -10,6 +10,6 @@ const (
 
 type Provider interface {
 	GetName() string
-	GetIpVersion() int
-	GetIpAddress() (*string, error)
+	GetIPVersion() int
+	GetIPAddress() (*string, error)
 }

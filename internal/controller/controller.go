@@ -1,25 +1,26 @@
 package controller
 
 import (
-	"ddnsd/internal/config"
-	"ddnsd/internal/dns"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"ddnsd/internal/config"
+	"ddnsd/internal/dns"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
-func NewController(cfg *config.Config) *Controller {
-	return &Controller{config: cfg}
-}
-
 type Controller struct {
 	config  *config.Config
 	ipCache *string
+}
+
+func NewController(cfg *config.Config) *Controller {
+	return &Controller{config: cfg}
 }
 
 func (c *Controller) Run() error {
@@ -31,11 +32,11 @@ func (c *Controller) Run() error {
 	ticker := time.NewTicker(time.Duration(checkInterval) * time.Second)
 	defer ticker.Stop()
 
-	ip, err := c.config.AddressProvider.Provider.GetIpAddress()
+	ip, err := c.config.AddressProvider.Provider.GetIPAddress()
 	if err != nil {
 		return err
 	}
-	err = c.updateDnsRecord(c.config.DnsProvider.Provider, c.config.DryRun, c.config.Domain, c.config.Host, *ip)
+	err = c.updateDNSRecord(c.config.DNSProvider.Provider, c.config.DryRun, c.config.Domain, c.config.Host, *ip)
 	if err != nil {
 		return err
 	}
@@ -46,11 +47,11 @@ func (c *Controller) Run() error {
 			log.Info().Msgf("received signal %s.Exiting...", sig)
 			return nil
 		case <-ticker.C:
-			ip, err := c.config.AddressProvider.Provider.GetIpAddress()
+			ip, err = c.config.AddressProvider.Provider.GetIPAddress()
 			if err != nil {
 				return err
 			}
-			err = c.updateDnsRecord(c.config.DnsProvider.Provider, c.config.DryRun, c.config.Domain, c.config.Host, *ip)
+			err = c.updateDNSRecord(c.config.DNSProvider.Provider, c.config.DryRun, c.config.Domain, c.config.Host, *ip)
 			if err != nil {
 				return err
 			}
@@ -65,7 +66,7 @@ func recordType(ip string) string {
 	return "AAAA"
 }
 
-func (c *Controller) updateDnsRecord(dnsClient dns.Provider, dryRun bool, domain string, host string, ip string) error {
+func (c *Controller) updateDNSRecord(dnsClient dns.Provider, dryRun bool, domain string, host string, ip string) error {
 	recType := recordType(ip)
 
 	// initialize cache on first run
