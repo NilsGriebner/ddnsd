@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/nrdcg/goinwx v0.12.0
-	github.com/rs/zerolog v1.35.0
+	github.com/rs/zerolog v1.35.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 )
